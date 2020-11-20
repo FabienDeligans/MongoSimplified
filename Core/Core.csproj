@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <Authors>Fabien DELIGANS</Authors>
+    <Description>NuGet qui permet d'effectuer la connection vers une base de données MongoDb avec les principales opérations de CRUD</Description>
+    <Copyright />
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MongoDB.Driver" Version="2.11.4" />
+  </ItemGroup>
+
+</Project>
