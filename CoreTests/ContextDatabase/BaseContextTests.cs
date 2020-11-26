@@ -1,8 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using Core.CustomAttribute;
 using CoreTests.InitTests.ContextTest;
 using CoreTests.InitTests.ModelsTest;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using MongoDB.Driver;
 
 namespace CoreTests.ContextDatabase
 {
@@ -36,6 +40,7 @@ namespace CoreTests.ContextDatabase
             var getFamily = context.GetEntity<Family>(family1.Id);
             Assert.AreEqual(family1.Id, getFamily.Id);
             Assert.AreEqual(family1.FamilyName, getFamily.FamilyName);
+
         }
 
         [TestMethod]
@@ -223,6 +228,46 @@ namespace CoreTests.ContextDatabase
 
             listParentDatabase = context.QueryCollection<Parent>();
             Assert.AreEqual(0, listParentDatabase.Count());
+        }
+
+        [TestMethod]
+        public void GetEntityOfForeignKey()
+        {
+            using var context = new ContextTest();
+
+            var family1 = new Family
+            {
+                FamilyName = "Deligans"
+            };
+            context.Insert(family1);
+
+            var listParent = new List<Parent>();
+
+            var parent1 = new Parent
+            {
+                FamilyId = family1.Id,
+                FirstName = family1.FamilyName,
+                LastName = "Fabien",
+            };
+
+            var parent2 = new Parent
+            {
+                FamilyId = family1.Id,
+                FirstName = family1.FamilyName,
+                LastName = "Sandrine",
+            };
+
+            listParent.AddRange(new[] { parent1, parent2 });
+            context.InsertAll(listParent);
+
+            var parentDatabase = context.GetEntity<Parent>(parent1.Id);
+
+            var entityAll = context.GetEntityOfForeignKey(parentDatabase);
+
+            Assert.AreEqual(1, entityAll.Count);
+            Assert.AreEqual(family1.Id, entityAll.First().Value.Id);
+
+
         }
     }
 }

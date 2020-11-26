@@ -1,4 +1,8 @@
-﻿using Core.Models;
+﻿using System;
+using System.Linq.Expressions;
+using System.Reflection;
+using Core.CustomAttribute;
+using Core.Models;
 
 namespace CoreTests.InitTests.ModelsTest
 {
@@ -10,7 +14,9 @@ namespace CoreTests.InitTests.ModelsTest
         public string Cp { get; set; }
         public string City { get; set; }
 
+        [FK(typeof(Family))]
         public string FamilyId { get; set; }
+        public Family Family { get; set; }
 
     }
 }

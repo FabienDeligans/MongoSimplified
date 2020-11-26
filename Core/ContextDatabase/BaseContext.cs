@@ -2,6 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
+using System.Reflection.Emit;
+using System.Threading.Tasks;
+using Core.CustomAttribute;
 using Core.Models;
 using MongoDB.Driver;
 
@@ -17,6 +21,15 @@ namespace Core.ContextDatabase
         protected MongoClient Client { get; set; }
         public abstract string ConnectionString { get; }
         public abstract string DatabaseName { get; }
+
+
+        public string MERDE { get; set;  }
+
+        public BaseContext()
+        {
+            Client = new MongoClient(ConnectionString);
+            MongoDatabase = Client.GetDatabase(DatabaseName); 
+        }
 
         public IMongoCollection<T> Collection<T>() where T : Entity => MongoDatabase.GetCollection<T>(typeof(T).Name);
 
@@ -34,7 +47,7 @@ namespace Core.ContextDatabase
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
         public IQueryable<T> QueryCollection<T>() where T : Entity => Collection<T>().AsQueryable();
-
+        
         /// <summary>
         /// Get a specific entity of a collection
         /// </summary>
@@ -110,6 +123,40 @@ namespace Core.ContextDatabase
         public void UpdateEntity<T>(T entity) where T : Entity
         {
             Collection<T>().ReplaceOne(v => v.Id == entity.Id, entity);
+        }
+
+        //TODO
+        public Dictionary<Type, Entity> GetEntityOfForeignKey<T>(T entity) where T : Entity
+        {
+            var result = new Dictionary<Type, Entity>();
+
+            var type = entity.GetType();
+            var properties = type.GetProperties();
+            foreach (var propertyInfo in properties)
+            {
+                var attributes = propertyInfo.GetCustomAttributes(true);
+                foreach (var attribute in attributes)
+                {
+                    if (!(attribute is FKAttribute)) continue;
+                    var fkAttribute = (FKAttribute) attribute;
+                    var typeOfForeignKey = fkAttribute.TheType;
+                    var valueOfForeignKey = propertyInfo.GetValue(entity);
+
+                    var methodInfo = this.GetType().GetMethod(nameof(GetEntity));
+                    var genericMethod = methodInfo?.MakeGenericMethod(typeOfForeignKey);
+                    var entitiesResultQuery = genericMethod?.Invoke(this, new object[] {valueOfForeignKey});
+
+
+                    var propertyInfos = entity.GetType().GetProperties().First(v => v.PropertyType.Name == typeOfForeignKey.Name);
+
+                    if (!result.ContainsKey(typeOfForeignKey))
+                    {
+                        result[typeOfForeignKey] = (Entity)entitiesResultQuery;
+                    }
+                }
+            }
+            
+            return result; 
         }
     }
 }

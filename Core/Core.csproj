@@ -5,6 +5,9 @@
     <Authors>Fabien DELIGANS</Authors>
     <Description>NuGet qui permet d'effectuer la connection vers une base de données MongoDb avec les principales opérations de CRUD</Description>
     <Copyright />
+    <AssemblyVersion>1.0.0.1</AssemblyVersion>
+    <FileVersion>1.0.0.1</FileVersion>
+    <Version>1.0.01</Version>
   </PropertyGroup>
 
   <ItemGroup>
